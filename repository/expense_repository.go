@@ -46,15 +46,21 @@ func (r *ExpenseRepository) FindByIDAndUserID(id uint, userID uint) (*model.Expe
 	return &expense, nil
 }
 
-func (r *ExpenseRepository) GetPaginatedExpenses(userID uint, offset, limit int) ([]model.Expense, int64, error) {
+func (r *ExpenseRepository) GetPaginatedExpenses(categoryID *uint, userID uint, offset, limit int) ([]model.Expense, int64, error) {
 	var expenses []model.Expense
 	var total int64
 
-	if err := r.db.Model(&model.Expense{}).Count(&total).Error; err != nil {
+	query := r.db.Model(&model.Expense{}).Where("user_id = ?", userID)
+
+	if categoryID != nil {
+		query = query.Where("category_id = ?", *categoryID)
+	}
+
+	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
 
-	if err := r.db.Order("created_at DESC").Limit(limit).Offset(offset).Find(&expenses).Error; err != nil {
+	if err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&expenses).Error; err != nil {
 		return nil, 0, err
 	}
 

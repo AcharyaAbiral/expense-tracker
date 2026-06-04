@@ -65,10 +65,10 @@ func (s *ExpenseService) FindByIDAndUserID(id uint, userID uint) (*model.Expense
 	return expense, nil
 }
 
-func (s *ExpenseService) GetExpenses(userID uint, paginationInput dto.PaginationInput) (*dto.PaginatedResponse[dto.ExpenseResponse], error) {
+func (s *ExpenseService) GetExpenses(categoryID *uint, userID uint, paginationInput dto.PaginationInput) (*dto.PaginatedResponse[dto.ExpenseResponse], error) {
 	offset := (paginationInput.Page - 1) * paginationInput.Limit
 
-	expenses, total, err := s.repo.GetPaginatedExpenses(userID, offset, paginationInput.Limit)
+	expenses, total, err := s.repo.GetPaginatedExpenses(categoryID, userID, offset, paginationInput.Limit)
 
 	if err != nil {
 		return nil, err

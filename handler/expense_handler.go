@@ -59,15 +59,28 @@ func (h *ExpenseHandler) FindByID(c *echo.Context) error {
 }
 
 // take date range as well?? :todo
-func (h *ExpenseHandler) GetExpenses(c *echo.Context) error { //take category argument as well??
+func (h *ExpenseHandler) GetExpenses(c *echo.Context) error {
 	var paginationInput dto.PaginationInput
 
 	if err := c.Bind(&paginationInput); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
+
+	var categoryID *uint
+	categoryIdStr := c.QueryParam("category_id")
+
+	if categoryIdStr != "" {
+		id, err := strconv.ParseUint(categoryIdStr, 10, 64)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, "invalid category_id")
+		}
+		tmp := uint(id)
+		categoryID = &tmp
+	}
+
 	userID := util.GetUserID(c)
 
-	expenses, err := h.service.GetExpenses(userID, paginationInput)
+	expenses, err := h.service.GetExpenses(categoryID, userID, paginationInput)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
