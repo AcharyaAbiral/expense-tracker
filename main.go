@@ -3,7 +3,7 @@ package main
 import (
 	"expense_tracker/config"
 	"expense_tracker/handler"
-	"expense_tracker/middleware"
+	"expense_tracker/middlewares"
 	"expense_tracker/model"
 	"expense_tracker/repository"
 	"expense_tracker/routes"
@@ -11,6 +11,7 @@ import (
 	"expense_tracker/validator"
 
 	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 )
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 	}
 
 	e := echo.New()
+	e.Use(middleware.Recover())
 	e.Validator = validator.NewCustomValidator()
 
 	db := config.InitDB(cfg)
@@ -42,7 +44,7 @@ func main() {
 	authHandler := handler.NewAuthHandler(authService)
 
 	g := e.Group("")
-	g.Use(middleware.JwtMiddleware(cfg.JWTSecret))
+	g.Use(middlewares.JwtMiddleware(cfg.JWTSecret))
 
 	routes.RegisterExpenseRoutes(g, expHandler)
 	routes.RegisterUserRoutes(g, userHandler)
