@@ -7,6 +7,7 @@ import (
 	"expense_tracker/util"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v5"
 )
@@ -133,4 +134,49 @@ func (h *ExpenseHandler) DeleteExpense(c *echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, idStr)
+}
+
+func (h *ExpenseHandler) Summary(c *echo.Context) error {
+	fromDateStr := c.QueryParam("from")
+	toDateStr := c.QueryParam("to")
+
+	if fromDateStr == "" || toDateStr == "" {
+		return c.JSON(http.StatusBadRequest, "both from and to required")
+	}
+
+	fromDate, err := time.Parse("2006-01-02", fromDateStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid date format")
+	}
+
+	toDate, err := time.Parse("2006-01-02", toDateStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid date format")
+	}
+
+	userID := util.GetUserID(c)
+
+	summary, err := h.service.GetSummary(userID, fromDate, toDate)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, summary)
+}
+
+func (h *ExpenseHandler) YearlySummary(c *echo.Context) error {
+	yearStr := c.Param("year")
+	year64, err := strconv.ParseUint(yearStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, "invalid year")
+	}
+
+	userID := util.GetUserID(c)
+
+	summary, err := h.service.GetYearlySummary(userID, int(year64))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, summary)
 }

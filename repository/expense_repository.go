@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"expense_tracker/dto"
 	"expense_tracker/model"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -23,7 +25,7 @@ func (r *ExpenseRepository) Update(expense *model.Expense) error {
 }
 
 func (r *ExpenseRepository) DeleteByIDAndUserID(id, userID uint) error {
-	expense := r.db.Where("id = ? AND user_id = ?", id, userID).Delete(&model.Expense{})
+	expense := r.db.Unscoped().Where("id = ? AND user_id = ?", id, userID).Delete(&model.Expense{})
 
 	if expense.Error != nil {
 		return expense.Error
@@ -65,4 +67,36 @@ func (r *ExpenseRepository) GetPaginatedExpenses(categoryID *uint, userID uint, 
 	}
 
 	return expenses, total, nil
+}
+
+func (r *ExpenseRepository) GetSummary(userID uint, fromDate, toDate time.Time) ([]dto.CategoryExpenseSummary, error) {
+	var rows []dto.CategoryExpenseSummary
+	if err := r.db.Table("categories").
+		Select("categories.name AS category, COALESCE(SUM(expenses.amount),0) AS total_amount, COUNT(expenses.id) AS total_transactions").
+		Joins("LEFT JOIN expenses ON categories.id = expenses.category_id AND expenses.created_at BETWEEN ? AND ?", fromDate, toDate).
+		Where("categories.user_id = ?", userID).
+		Group("categories.id").
+		Order("total_amount DESC").
+		Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	return rows, nil
+}
+
+func (r *ExpenseRepository) GetYearlySummary(userID uint, year int) ([]dto.MonthlyCategoryExpense, error) {
+	var rows []dto.MonthlyCategoryExpense
+	if err := r.db.Raw(`
+		WITH months AS (SELECT GENERATE_SERIES(1,12) AS month)
+		SELECT m.month AS month, c.name AS category, COALESCE(SUM(e.amount),0) AS total_amount, COUNT(e.id) AS total_transactions
+		FROM months m CROSS JOIN categories c 
+		LEFT JOIN expenses e 
+		ON c.id = e.category_id AND EXTRACT(MONTH FROM e.created_at) = m.month AND EXTRACT(YEAR FROM e.created_at) = ?
+		WHERE c.user_id = ?
+		GROUP BY m.month, c.id
+		ORDER BY m.month ASC, c.id ASC
+
+	`, year, userID).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	return rows, nil
 }

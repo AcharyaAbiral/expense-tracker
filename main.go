@@ -48,7 +48,7 @@ func main() {
 
 	routes.RegisterExpenseRoutes(g, expHandler)
 	routes.RegisterUserRoutes(g, userHandler)
-	routes.RegisterCategoryRoutes(e, categoryHandler)
+	routes.RegisterCategoryRoutes(g, categoryHandler)
 	routes.RegisterAuthRoutes(e, authHandler)
 
 	if err := e.Start(":8000"); err != nil {

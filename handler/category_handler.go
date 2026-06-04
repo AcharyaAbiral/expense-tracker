@@ -4,6 +4,7 @@ import (
 	"expense_tracker/dto"
 	"expense_tracker/mapper"
 	"expense_tracker/service"
+	"expense_tracker/util"
 	"net/http"
 	"strconv"
 
@@ -29,7 +30,9 @@ func (h *CategoryHandler) Create(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	category, err := h.service.Create(&reqDto)
+	userID := util.GetUserID(c)
+
+	category, err := h.service.Create(&reqDto, userID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}

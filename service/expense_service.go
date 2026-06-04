@@ -5,6 +5,8 @@ import (
 	"expense_tracker/mapper"
 	"expense_tracker/model"
 	"expense_tracker/repository"
+	"fmt"
+	"time"
 )
 
 type ExpenseService struct {
@@ -86,4 +88,62 @@ func (s *ExpenseService) GetExpenses(categoryID *uint, userID uint, paginationIn
 		Limit: paginationInput.Limit,
 		Total: total,
 	}, nil
+}
+
+func (s *ExpenseService) GetSummary(userID uint, fromDate, toDate time.Time) (*dto.ExpenseSummaryResponse, error) {
+	if toDate.Before(fromDate) {
+		return nil, fmt.Errorf("to must be after from")
+	}
+
+	categorySummaries, err := s.repo.GetSummary(userID, fromDate, toDate)
+	if err != nil {
+		return nil, err
+	}
+
+	totalTransactions := 0
+	totalAmount := 0.0
+	for _, s := range categorySummaries {
+		totalTransactions += s.TotalTransactions
+		totalAmount += s.TotalAmount
+	}
+
+	return &dto.ExpenseSummaryResponse{
+		TotalAmount:       totalAmount,
+		TotalTransactions: totalTransactions,
+		ExpenseSummaries:  categorySummaries,
+	}, nil
+}
+
+func (s *ExpenseService) GetYearlySummary(userID uint, year int) (*dto.YearlyExpenseSummaryResponse, error) {
+	currentYear := time.Now().Year()
+	if year < 2020 || year > currentYear {
+		return nil, fmt.Errorf("invalid year")
+	}
+
+	expenses, err := s.repo.GetYearlySummary(userID, year)
+	if err != nil {
+		return nil, err
+	}
+
+	monthlySummaries := make([]dto.MonthlyCategoryExpenseSummaryResponse, 12)
+	var yearlySummary dto.YearlyExpenseSummaryResponse
+
+	for _, e := range expenses {
+		idx := e.Month - 1
+		monthlySummaries[idx].Month = e.Month
+		monthlySummaries[idx].TotalAmount += e.TotalAmount
+		monthlySummaries[idx].TotalTransactions += e.TotalTransactions
+		monthlySummaries[idx].ExpenseSummaries = append(monthlySummaries[idx].ExpenseSummaries, dto.CategoryExpenseSummary{
+			Category:          e.Category,
+			TotalAmount:       e.TotalAmount,
+			TotalTransactions: e.TotalTransactions,
+		})
+		yearlySummary.TotalAmount += e.TotalAmount
+		yearlySummary.TotalTransactions += e.TotalTransactions
+
+	}
+
+	yearlySummary.ExpenseSummaries = monthlySummaries
+	return &yearlySummary, nil
+
 }

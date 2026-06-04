@@ -12,6 +12,8 @@ func RegisterExpenseRoutes(e *echo.Group, h *handler.ExpenseHandler) {
 	e.GET("/expense", h.GetExpenses)
 	e.PUT("/expense/:id", h.UpdateExpense)
 	e.DELETE("/expense/:id", h.DeleteExpense)
+	e.GET("/expense/summary", h.Summary)
+	e.GET("/expense/summary/:year", h.YearlySummary)
 }
 
 func RegisterUserRoutes(e *echo.Group, h *handler.UserHandler) {
@@ -23,7 +25,7 @@ func RegisterAuthRoutes(e *echo.Echo, h *handler.AuthHandler) {
 	e.POST("/signup", h.Signup)
 }
 
-func RegisterCategoryRoutes(e *echo.Echo, h *handler.CategoryHandler) {
+func RegisterCategoryRoutes(e *echo.Group, h *handler.CategoryHandler) {
 	e.GET("/category/:id", h.FindByID)
 	e.POST("/category", h.Create)
 }

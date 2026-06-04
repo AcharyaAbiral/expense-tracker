@@ -15,8 +15,10 @@ func NewCategoryService(repo *repository.CategoryRepository) *CategoryService {
 	return &CategoryService{repo}
 }
 
-func (s *CategoryService) Create(reqDto *dto.CategoryRequest) (*model.Category, error) {
+func (s *CategoryService) Create(reqDto *dto.CategoryRequest, userID uint) (*model.Category, error) {
 	category := mapper.ToCategory(reqDto)
+	category.UserID = userID
+
 	if err := s.repo.Create(category); err != nil {
 		return nil, err
 	}

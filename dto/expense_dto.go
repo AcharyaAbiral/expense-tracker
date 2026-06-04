@@ -17,12 +17,32 @@ type ExpenseResponse struct {
 	CreatedAt  time.Time `json:"createdAt"`
 }
 
-type ExpenseReportRequest struct {
-	FromDate time.Time `json:"fromDate" validate:"required"`
-	ToDate   time.Time `json:"toDate" validate:"required"`
+type CategoryExpenseSummary struct {
+	Category          string  `json:"category" gorm:"column:category"`
+	TotalAmount       float64 `json:"totalAmount" gorm:"column:total_amount"`
+	TotalTransactions int     `json:"totalTransactions" gorm:"column:total_transactions"`
 }
 
-type ExpenseReportResponse struct {
-	CategoryID uint    `json:"categoryID"`
-	Amount     float64 `json:"amount"`
+type MonthlyCategoryExpense struct {
+	Month int `json:"month" gorm:"column:month"`
+	CategoryExpenseSummary
+}
+
+type MonthlyCategoryExpenseSummaryResponse struct {
+	Month             int                      `json:"month"`
+	TotalAmount       float64                  `json:"totalAmount"`
+	TotalTransactions int                      `json:"totalTransactions"`
+	ExpenseSummaries  []CategoryExpenseSummary `json:"expenseSummaries"`
+}
+
+type ExpenseSummaryResponse struct {
+	TotalAmount       float64                  `json:"totalAmount"`
+	TotalTransactions int                      `json:"totalTransactions"`
+	ExpenseSummaries  []CategoryExpenseSummary `json:"expenseSummaries"`
+}
+
+type YearlyExpenseSummaryResponse struct {
+	TotalAmount       float64                                 `json:"totalAmount"`
+	TotalTransactions int                                     `json:"totalTransactions"`
+	ExpenseSummaries  []MonthlyCategoryExpenseSummaryResponse `json:"expenseSummaries"`
 }
