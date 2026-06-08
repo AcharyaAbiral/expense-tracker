@@ -23,7 +23,7 @@ func (s *ExpenseService) Create(reqDto *dto.ExpenseRequest, userID uint) (*model
 	expense := mapper.ToExpense(reqDto)
 	expense.UserID = userID
 
-	if _, err := s.categoryService.FindByID(expense.CategoryID); err != nil {
+	if _, err := s.categoryService.FindByIDAndUserID(expense.CategoryID, userID); err != nil {
 		return nil, err
 	}
 
@@ -40,7 +40,7 @@ func (s *ExpenseService) Update(reqDto *dto.ExpenseRequest, id uint, userID uint
 		return nil, err
 	}
 
-	if _, err := s.categoryService.FindByID(expense.CategoryID); err != nil {
+	if _, err := s.categoryService.FindByIDAndUserID(expense.CategoryID, userID); err != nil {
 		return nil, err
 	}
 

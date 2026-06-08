@@ -18,11 +18,10 @@ func (r *CategoryRepository) Create(category *model.Category) error {
 	return r.db.Create(category).Error
 }
 
-func (r *CategoryRepository) FindByID(id uint) (*model.Category, error) {
+func (r *CategoryRepository) FindByIDAndUserID(id uint, userID uint) (*model.Category, error) {
 	var category model.Category
 
-	err := r.db.First(&category, id).Error
-	if err != nil {
+	if err := r.db.Where("id = ? AND user_id = ?", id, userID).First(&category).Error; err != nil {
 		return nil, err
 	}
 

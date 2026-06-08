@@ -48,7 +48,8 @@ func (h *CategoryHandler) FindByID(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "invalid id")
 	}
 
-	category, err := h.service.FindByID(uint(id64))
+	userID := util.GetUserID(c)
+	category, err := h.service.FindByIDAndUserID(uint(id64), userID)
 	if err != nil {
 		return c.JSON(http.StatusNotFound, err.Error())
 	}

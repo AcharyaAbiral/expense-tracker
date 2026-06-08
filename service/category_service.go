@@ -25,6 +25,6 @@ func (s *CategoryService) Create(reqDto *dto.CategoryRequest, userID uint) (*mod
 	return category, nil
 }
 
-func (s *CategoryService) FindByID(id uint) (*model.Category, error) {
-	return s.repo.FindByID(id)
+func (s *CategoryService) FindByIDAndUserID(id, userID uint) (*model.Category, error) {
+	return s.repo.FindByIDAndUserID(id, userID)
 }
